@@ -1,0 +1,12 @@
+d635b383e16b33e855feecbf389992ef *DESCRIPTION
+c08b314d8dc0a5ea56f227d8c595c664 *NAMESPACE
+ea78ab8909bbbf1b933e694bcbfebabf *R/Internal.R
+706144ca275c855a735c8a9499089bbf *R/data.R
+168ab460c5ca25ed6590a7ff27d681f8 *R/main.R
+7ec589590fc96d02c8fbaacd212cccf8 *data/FF4_qc.RData
+c4c1a2db42d9f2d201fa0e56383f1bcc *inst/CITATION
+0fce8be848aa9eca987ed0c2589d34a5 *man/FF4_qc.Rd
+d335df997d0d37c9d963fdb72a3d33a3 *man/compute_RSD.Rd
+4e887f6627c127f4b194647b4cae86be *man/compute_targetVal.Rd
+9572878aef4d985d34f00ec24d1cccb8 *man/run_TIGER.Rd
+41aeaec3d9926b8e01e94c614673f313 *man/select_variable.Rd
