@@ -38,7 +38,7 @@ compute_RSD <- function(input_data) {
 #'
 #' @param QC_num a numeric data.frame including the metabolite values of quality control (QC) samples. Missing values and infinite values will not be taken into account. Row: sample. Column: metabolite variable. See Examples.
 #' @param sampleType a vector corresponding to \code{QC_num} to specify the type of each QC sample. QC samples of the \strong{same type} should have the \strong{same type name}. See Examples.
-#' @param batchID a vector corresponding to \code{QC_num} to specify the batch of each sample. See Examples.
+#' @param batchID a vector corresponding to \code{QC_num} to specify the batch of each sample. Ignored if \code{targetVal_batchWise = FALSE}. See Examples.
 #' @param targetVal_method a character string specifying how the target values are computed. Can be \code{"mean"} (default) or \code{"median"}. See Details.
 #' @param targetVal_batchWise logical. If \code{TRUE}, the target values will be computed based on each batch, otherwise, based on the whole dataset. Setting \code{TRUE} might be useful if your dataset has very obvious batch effects, but this may also make the algorithm less robust. See Details. Default: \code{FALSE}.
 #' @param targetVal_removeOutlier logical. If \code{TRUE}, outliers will be removed before the computation. Outliers are determined with 1.5 * IQR (interquartile range) rule. We recommend turning this off when the target values are computed based on batches. See Details. Default: \code{!targetVal_batchWise}.
@@ -101,7 +101,7 @@ compute_RSD <- function(input_data) {
 #' }
 #' @export
 
-compute_targetVal <- function(QC_num, sampleType, batchID,
+compute_targetVal <- function(QC_num, sampleType, batchID = NULL,
                               targetVal_method = c("mean", "median"),
                               targetVal_batchWise = FALSE,
                               targetVal_removeOutlier = !targetVal_batchWise,
@@ -245,12 +245,6 @@ select_variable <- function(train_num, test_num = NULL,
     selectVar_corType   <- match.arg(selectVar_corType)
     selectVar_corMethod <- match.arg(selectVar_corMethod)
 
-    selectVar_minNum <- ifelse(is.null(selectVar_minNum), 1, selectVar_minNum)
-    selectVar_maxNum <- ifelse(is.null(selectVar_maxNum), (ncol(train_num) - 1), selectVar_maxNum)
-
-    selectVar_minNum <- max(as.integer(selectVar_minNum), 1)
-    selectVar_maxNum <- min(as.integer(selectVar_maxNum), ncol(train_num) - 1)
-
     if(coerce_numeric) {
         train_num <- as.data.frame(sapply(train_num, as.numeric))
         idx_NA <- sapply(train_num, function(x) {
@@ -281,6 +275,15 @@ select_variable <- function(train_num, test_num = NULL,
         if (!all(names(test_num) %in% names(train_num))) stop("  Variables in training and test data cannot match!")
         train_num <- train_num[names(test_num)]
     }
+
+    selectVar_minNum <- ifelse(is.null(selectVar_minNum), 1, selectVar_minNum)
+    selectVar_maxNum <- ifelse(is.null(selectVar_maxNum), (ncol(train_num) - 1), selectVar_maxNum)
+
+    selectVar_minNum <- max(as.integer(selectVar_minNum), 1)
+    selectVar_maxNum <- max(as.integer(selectVar_maxNum), 1)
+
+    selectVar_maxNum <- min(selectVar_maxNum, ncol(train_num) - 1)
+    selectVar_minNum <- min(selectVar_minNum, selectVar_maxNum)
 
     if (selectVar_batchWise) {
         train_num_list    <- split(train_num, f = train_batchID)
@@ -360,7 +363,6 @@ select_variable <- function(train_num, test_num = NULL,
 #' @param ... (advanced) optional arguments (except \code{mtry} and \code{nodesize}) to be passed to \code{\link[randomForest]{randomForest}} for model training. Arguments \code{mtry} and \code{nodesize} are determined by \code{mtry_percent} and \code{nodesize_percent}. See \code{\link[randomForest]{randomForest}} and Examples. \strong{Note}: providing more arguments will include more base learners into the ensemble model, which will increase the processing time.
 #' @param parallel.cores an integer (== -1 or >= 1) specifying the number of cores for parallel computation. Setting \code{-1} to run with all cores. Default: \code{2}.
 #'
-#' @importFrom caret createFolds
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
 #' @importFrom parallel clusterExport
@@ -378,6 +380,7 @@ select_variable <- function(train_num, test_num = NULL,
 #' @importFrom stats fivenum
 #' @importFrom stats median
 #' @importFrom stats predict
+#' @importFrom stats quantile
 #' @importFrom stats rnorm
 #' @importFrom stats sd
 #'
@@ -434,8 +437,8 @@ select_variable <- function(train_num, test_num = NULL,
 #'
 #' @return This function returns a data.frame with the same data structure as the input \code{test_samples}, but the metabolite values are the normalised/corrected ones. \code{NA} and zeros in the original \code{test_samples} will not be changed or normalised.
 #'
-#' @section References:
-#' Han S. \emph{et al}. TIGER: Technical variation elimination for metabolomics data using ensemble learning architecture. (\emph{Submitted})
+#' @section Reference:
+#' Han S. \emph{et al}. TIGER: technical variation elimination for metabolomics data using ensemble learning architecture. \emph{Briefings in Bioinformatics} (2022) bbab535. \doi{10.1093/bib/bbab535}.
 #'
 #' @examples
 #' \donttest{
